@@ -3,345 +3,220 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LogiWatch — Monitoramento de Entregas</title>
+<title>Code 200 — Logística</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:          #080C18;
-  --surface:     #0D1221;
-  --card:        #111827;
-  --card-hover:  #141d2f;
-  --border:      #1C2740;
-  --border-mid:  #253050;
-  --text:        #E4EAF4;
-  --muted:       #4E6080;
-  --faint:       #2A3858;
+  --bg:       #0F0F0F;
+  --surface:  #161616;
+  --card:     #1A1A1A;
+  --border:   #2A2A2A;
+  --border-hi:#3D3D3D;
+  --text:     #E8E8E8;
+  --muted:    #666;
+  --faint:    #222;
 
-  --indigo:      #4F46E5;
-  --indigo-dim:  rgba(79,70,229,0.15);
-  --red:         #DC2626;
-  --red-dim:     rgba(220,38,38,0.12);
-  --red-mid:     rgba(220,38,38,0.25);
-  --green:       #059669;
-  --green-dim:   rgba(5,150,105,0.12);
-  --amber:       #D97706;
-  --amber-dim:   rgba(217,119,6,0.12);
-
-  --r:           10px;
-  --r-sm:        6px;
+  --red:      #E03131;
+  --green:    #2F9E44;
+  --amber:    #E67700;
+  --blue:     #1971C2;
 }
 
 html, body { min-height: 100%; }
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.5;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  font-size: 13px; line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── HEADER ──────────────────────────────── */
-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 32px; height: 60px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; z-index: 50;
-}
+main { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
 
-.logo { display: flex; align-items: center; gap: 10px; }
-.logo-mark {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: var(--indigo);
-  display: flex; align-items: center; justify-content: center;
+/* ── FILTER BAR ─────────────────────── */
+.barra-filtro {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 24px; flex-wrap: wrap;
 }
-.logo-mark svg { width: 16px; height: 16px; color: #fff; }
-.logo-name { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
-.logo-sub  { font-size: 12px; color: var(--muted); margin-top: 1px; }
-
-.header-right { display: flex; align-items: center; gap: 16px; }
-
-.last-update {
-  font-size: 11px; color: var(--muted);
-  display: flex; align-items: center; gap: 6px;
-}
-.last-update svg { width: 12px; height: 12px; }
-#updateTime { color: var(--text); font-weight: 500; transition: color .3s; }
-#updateTime.flash { color: var(--indigo); }
-
-.live-pill {
-  display: flex; align-items: center; gap: 7px;
-  padding: 5px 12px; border-radius: 99px;
-  border: 1px solid var(--red-mid);
-  font-size: 11px; font-weight: 600; letter-spacing: .4px;
-  color: var(--red); text-transform: uppercase;
-}
-.live-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--red);
-  animation: livepulse 2s ease-in-out infinite;
-}
-@keyframes livepulse {
-  0%,100% { opacity: 1; }
-  50%      { opacity: .35; }
-}
-
-/* ── LAYOUT ──────────────────────────────── */
-main { padding: 28px 32px; max-width: 1360px; margin: 0 auto; }
-
-/* ── FILTER BAR ──────────────────────────── */
-.filter-bar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 20px; flex-wrap: wrap;
-}
-.filter-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: .3px; text-transform: uppercase; }
-.filter-sep { width: 1px; height: 18px; background: var(--border); }
-
+.rotulo-filtro { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+.separador-filtro { width: 1px; height: 16px; background: var(--border); }
 select {
-  padding: 7px 12px; border-radius: var(--r-sm);
+  padding: 6px 28px 6px 10px;
   background: var(--card); border: 1px solid var(--border);
-  color: var(--text); font-size: 13px; font-family: inherit;
-  cursor: pointer; outline: none; transition: border-color .2s, box-shadow .2s;
+  color: var(--text); font-size: 12px; font-family: 'IBM Plex Sans', sans-serif;
+  cursor: pointer; outline: none; transition: border-color .15s;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234E6080' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+  border-radius: 2px;
 }
-select:hover { border-color: var(--border-mid); }
-select:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(79,70,229,.15); }
-
-.btn-reset {
-  padding: 7px 14px; border-radius: var(--r-sm);
+select:hover { border-color: var(--border-hi); }
+select:focus { border-color: var(--blue); outline: none; }
+.btn-limpar {
+  padding: 6px 12px;
   background: transparent; border: 1px solid var(--border);
-  color: var(--muted); font-size: 13px; font-family: inherit;
-  cursor: pointer; transition: all .2s; white-space: nowrap;
+  color: var(--muted); font-size: 12px; font-family: inherit;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
   display: flex; align-items: center; gap: 6px;
+  border-radius: 2px;
 }
-.btn-reset svg { width: 13px; height: 13px; }
-.btn-reset:hover { color: var(--text); border-color: var(--border-mid); background: rgba(255,255,255,.03); }
+.btn-limpar svg { width: 11px; height: 11px; }
+.btn-limpar:hover { color: var(--text); border-color: var(--border-hi); }
 
-/* ── CHART GRID ───────────────────────────── */
-.chart-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 14px; margin-bottom: 20px;
+/* ── PANELS ─────────────────────────── */
+.grade-graficos {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px; margin-bottom: 12px;
 }
-.panel {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 22px;
-  transition: border-color .25s, box-shadow .25s;
-  animation: fadeUp .4s ease both;
+.painel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 20px;
 }
-.panel:hover { border-color: var(--border-mid); box-shadow: 0 4px 24px rgba(0,0,0,.25); }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+.painel-perigo {
+  border-color: rgba(224,49,49,0.35);
+  background: rgba(224,49,49,0.04);
 }
+.painel-cabecalho { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+.painel-titulo { font-size: 12px; font-weight: 600; color: var(--text); }
+.painel-perigo .painel-titulo { color: #FF6B6B; }
+.painel-perigo .painel-subtitulo { color: rgba(255,107,107,0.5); }
+.painel-subtitulo { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+.envoltorio-grafico { position: relative; height: 200px; }
 
-.panel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
-.panel-icon {
-  width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-.panel-icon svg { width: 14px; height: 14px; }
-.panel-icon.indigo { background: var(--indigo-dim); color: #818CF8; }
-.panel-icon.red    { background: var(--red-dim);    color: #F87171; }
-.panel-icon.amber  { background: var(--amber-dim);  color: #FCD34D; }
-.panel-icon.green  { background: var(--green-dim);  color: #34D399; }
-
-.panel-title { font-size: 13px; font-weight: 600; color: var(--text); }
-.panel-sub   { font-size: 12px; color: var(--muted); margin-bottom: 18px; margin-left: 36px; }
-.chart-wrap  { position: relative; height: 210px; }
-
-/* ── SUMMARY PANEL ─────────────────────────── */
-.summary-panel { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.summary-row {
+/* ── SUMMARY ────────────────────────── */
+.painel-resumo { display: flex; flex-direction: column; }
+.linha-resumo {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 14px; border-radius: var(--r-sm);
-  background: rgba(255,255,255,.025); border: 1px solid var(--border);
-  transition: background .2s, border-color .2s;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
   cursor: default;
 }
-.summary-row:hover { background: rgba(255,255,255,.04); border-color: var(--border-mid); }
-.summary-row-label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-.summary-row-label svg { width: 14px; height: 14px; flex-shrink: 0; }
-.summary-row-right { display: flex; align-items: center; gap: 10px; }
-.summary-bar-wrap { width: 60px; height: 3px; background: var(--faint); border-radius: 99px; overflow: hidden; }
-.summary-bar-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(.4,0,.2,1); }
-.summary-row-val { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; min-width: 40px; text-align: right;
-  transition: color .4s; }
-.val-indigo { color: #818CF8; }
-.val-red    { color: #F87171; }
-.val-green  { color: #34D399; }
-.val-amber  { color: #FCD34D; }
+.linha-resumo:last-child { border-bottom: none; }
+.linha-resumo-rotulo { font-size: 11px; color: var(--muted); }
+.linha-resumo-direita { display: flex; align-items: center; gap: 12px; }
+.barra-resumo-trilha { width: 48px; height: 2px; background: var(--faint); overflow: hidden; }
+.barra-resumo-preenchimento { height: 100%; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
+.linha-resumo-valor {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 18px; font-weight: 600;
+  min-width: 40px; text-align: right; transition: color .3s;
+  letter-spacing: -.02em;
+}
+.valor-indigo { color: #74B0FF; }
+.valor-vermelho    { color: #FF8787; }
+.valor-verde  { color: #69DB7C; }
+.valor-ambar  { color: #FFD43B; }
 
-/* ── AVISOS ──────────────────────────────── */
-.notice-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.notice-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 12px; border-radius: var(--r-sm);
-  border: 1px solid var(--border); background: rgba(255,255,255,.02);
-  animation: slideIn .35s ease both;
-  transition: background .2s;
+/* ── NOTICES ────────────────────────── */
+.lista-avisos { display: flex; flex-direction: column; gap: 6px; }
+.item-aviso {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 12px;
+  border-left: 3px solid transparent;
 }
-.notice-item:hover { background: rgba(255,255,255,.04); }
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-8px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-.notice-icon {
-  width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-.notice-icon svg { width: 13px; height: 13px; }
-.notice-hi  { background: var(--red-dim);             border: 1px solid var(--red-mid);             color: #F87171; }
-.notice-mid { background: rgba(217,119,6,.12);         border: 1px solid rgba(217,119,6,.25);         color: #FCD34D; }
-.notice-low { background: rgba(79,70,229,.12);         border: 1px solid rgba(79,70,229,.25);         color: #818CF8; }
-.notice-body { flex: 1; min-width: 0; }
-.notice-title { font-size: 12px; font-weight: 600; color: var(--text); }
-.notice-desc  { font-size: 11px; color: var(--muted); margin-top: 1px; line-height: 1.4; }
+.aviso-critico  { background: rgba(224,49,49,0.13); border-left-color: #E03131; }
+.aviso-moderado { background: rgba(230,119,0,0.10); border-left-color: #E67700; }
+.aviso-informativo { background: rgba(25,113,194,0.08); border-left-color: #1971C2; }
+.corpo-aviso { flex: 1; min-width: 0; }
+.titulo-aviso { font-size: 12px; font-weight: 600; line-height: 1.3; }
+.aviso-critico  .titulo-aviso { color: #FF6B6B; }
+.aviso-moderado .titulo-aviso { color: #FFB347; }
+.aviso-informativo .titulo-aviso { color: #74B0FF; }
+.descricao-aviso  { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
 
-/* ── BOTTOM GRID ─────────────────────────── */
-.bottom-grid {
-  display: grid;
-  grid-template-columns: 280px 280px 1fr;
-  gap: 14px;
-}
+/* ── BOTTOM ─────────────────────────── */
+.grade-inferior { display: grid; grid-template-columns: 260px 260px 1fr; gap: 12px; }
 
-/* ── RANKING ─────────────────────────────── */
-.rank-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--border);
-  transition: background .15s;
-  animation: fadeUp .35s ease both;
+/* ── RANKING ────────────────────────── */
+.item-rank {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
 }
-.rank-item:last-child { border-bottom: none; }
-.rank-num {
-  width: 24px; height: 24px; flex-shrink: 0;
-  border-radius: 5px; background: var(--faint);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: var(--muted);
+.item-rank:last-child { border-bottom: none; }
+.rank-numero {
+  font-family: 'IBM Plex Mono', monospace;
+  width: 20px; flex-shrink: 0;
+  font-size: 10px; font-weight: 600; color: var(--muted);
+  text-align: center;
 }
-.rank-num.r1 { background: rgba(217,119,6,.2); color: #FCD34D; }
-.rank-num.r2 { background: rgba(148,163,184,.12); color: #94A3B8; }
-.rank-num.r3 { background: rgba(180,83,9,.18); color: #FB923C; }
+.rank-numero.primeiro { color: #FFD43B; }
+.rank-numero.segundo { color: #ADB5BD; }
+.rank-numero.terceiro { color: #E8825A; }
 .rank-info { flex: 1; min-width: 0; }
-.rank-id   { font-size: 13px; font-weight: 600; }
-.rank-meta { font-size: 11px; color: var(--muted); }
-.rank-bar-track { flex: 1; height: 4px; background: var(--faint); border-radius: 99px; overflow: hidden; }
-.rank-bar-fill  { height: 100%; border-radius: 99px; background: var(--red); width: 0; transition: width 1s cubic-bezier(.4,0,.2,1); }
-.rank-extra { font-size: 13px; font-weight: 600; color: var(--red); min-width: 36px; text-align: right; flex-shrink: 0; }
+.rank-id   { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; }
+.rank-meta { font-size: 10px; color: var(--muted); }
+.barra-rank-trilha { flex: 1; height: 2px; background: var(--faint); overflow: hidden; }
+.barra-rank-preenchimento  { height: 100%; background: var(--red); width: 0; transition: width 0.9s cubic-bezier(.4,0,.2,1); }
+.rank-excesso { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: var(--red); min-width: 32px; text-align: right; flex-shrink: 0; }
 
-/* ── TABLE ───────────────────────────────── */
-.table-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--r); overflow: hidden;
-  animation: fadeUp .45s ease both;
-  transition: border-color .25s;
+.estado-vazio { color: var(--muted); font-size: 12px; padding: 16px 0; }
+
+/* ── TABLE ──────────────────────────── */
+.card-tabela {
+  background: var(--card);
+  border: 1px solid var(--border);
+  overflow: hidden;
 }
-.table-card:hover { border-color: var(--border-mid); }
-.table-head {
-  padding: 16px 20px; border-bottom: 1px solid var(--border);
+.cabecalho-tabela {
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: baseline; justify-content: space-between;
 }
-.table-head h3  { font-size: 13px; font-weight: 600; }
-.table-count    { font-size: 12px; color: var(--muted); }
-
-.tbl-wrap { overflow-x: auto; }
+.cabecalho-tabela h3 { font-size: 12px; font-weight: 600; }
+.contador-tabela   { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+.envoltorio-tabela { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 thead th {
-  padding: 10px 16px; text-align: left;
-  font-size: 11px; font-weight: 600; color: var(--muted);
-  letter-spacing: .5px; text-transform: uppercase;
-  background: rgba(255,255,255,.02);
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-  cursor: pointer; user-select: none;
-  transition: color .15s;
+  padding: 8px 14px; text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 600; color: var(--muted);
+  letter-spacing: .06em; text-transform: uppercase;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  white-space: nowrap; cursor: pointer; user-select: none; transition: color .1s;
 }
 thead th:hover { color: var(--text); }
-thead th .sort-arrow { opacity: .4; margin-left: 4px; font-size: 10px; }
-thead th.sorted .sort-arrow { opacity: 1; color: var(--indigo); }
-tbody td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.035); }
-tbody tr { transition: background .1s; }
-tbody tr:hover { background: rgba(255,255,255,.025); }
-tbody tr.late  { background: rgba(220,38,38,.04); }
-tbody tr.late:hover { background: rgba(220,38,38,.075); }
-
-.chip {
+thead th .seta-ordenacao { opacity: .4; margin-left: 4px; font-size: 9px; }
+thead th.ordenada .seta-ordenacao { opacity: 1; color: #74B0FF; }
+tbody td { padding: 9px 14px; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,.04); }
+tbody tr { transition: background .08s; }
+tbody tr:hover { background: rgba(255,255,255,.02); }
+tbody tr.atrasada  { background: rgba(224,49,49,.04); }
+tbody tr.atrasada:hover { background: rgba(224,49,49,.07); }
+.badge {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 8px; border-radius: 99px;
-  font-size: 11px; font-weight: 600; letter-spacing: .2px;
+  padding: 2px 6px; font-size: 10px; font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace; letter-spacing: .04em;
+  border: 1px solid;
 }
-.chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-.chip.late-chip { background: var(--red-dim);   color: #F87171; }
-.chip.ok-chip   { background: var(--green-dim); color: #34D399; }
+.badge.badge-atrasada { border-color: rgba(224,49,49,.4); color: #FF8787; background: rgba(224,49,49,0.10); }
+.badge.badge-no-prazo   { border-color: rgba(47,158,68,.4); color: #69DB7C; background: rgba(47,158,68,0.10); }
+.severidade { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.severidade-ponto { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.severidade-ok  { background: var(--green); }
+.severidade-leve { background: var(--amber); }
+.severidade-moderada { background: #E8825A; }
+.severidade-critica  { background: var(--red); }
+.col-excesso { font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+.excesso-positivo  { color: #FF8787; }
+.excesso-zero { color: #69DB7C; }
+.linha-vazia td { text-align: center; padding: 32px; color: var(--muted); font-size: 12px; }
 
-.sev { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-.sev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.sev-ok  { background: var(--green); }
-.sev-low { background: var(--amber); }
-.sev-mid { background: #EA580C; }
-.sev-hi  { background: var(--red); }
+@media (max-width: 1200px) { .grade-graficos { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 1100px) { .grade-graficos { grid-template-columns: 1fr; } .grade-inferior { grid-template-columns: 1fr; } }
+@media (max-width: 640px)  { main { padding: 14px; } }
 
-.col-excess { font-weight: 600; }
-.excess-pos  { color: var(--red); }
-.excess-zero { color: var(--green); }
-.empty-row td { text-align: center; padding: 36px; color: var(--muted); }
-
-/* footer */
-footer {
-  text-align: center; padding: 24px 16px;
-  font-size: 12px; color: var(--muted);
-  border-top: 1px solid var(--border); margin-top: 28px;
-}
-
-/* ── ANIMATION DELAYS ─────────────────────── */
-.panel:nth-child(1) { animation-delay: .05s; }
-.panel:nth-child(2) { animation-delay: .10s; }
-.panel:nth-child(3) { animation-delay: .15s; }
-
-@media (max-width: 1200px) { .chart-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 1100px) { .chart-grid { grid-template-columns: 1fr; } .bottom-grid { grid-template-columns: 1fr; } }
-@media (max-width: 640px)  { main { padding: 16px; } header { padding: 0 16px; } .logo-sub, .live-pill { display: none; } }
+/* ANIMAÇÃO REMOVIDA — não usada */
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    <div class="logo-mark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-    </div>
-    <div>
-      <div class="logo-name">LogiWatch</div>
-      <div class="logo-sub">Monitoramento de Entregas</div>
-    </div>
-  </div>
-  <div class="header-right">
-    <div class="last-update">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Atualizado às <span id="updateTime">—</span>
-    </div>
-    <div class="live-pill"><div class="live-dot"></div>Monitoramento ativo</div>
-  </div>
-</header>
-
 <main>
-
-  <div class="filter-bar">
-    <span class="filter-label">Filtrar</span>
-    <div class="filter-sep"></div>
+  <div class="barra-filtro">
+    <span class="rotulo-filtro">Filtrar</span>
+    <div class="separador-filtro"></div>
     <select id="fRegiao" onchange="render()">
       <option value="">Todas as regiões</option>
       <option>Sudeste</option><option>Sul</option>
@@ -353,89 +228,71 @@ footer {
     </select>
     <select id="fStatus" onchange="render()">
       <option value="">Todos os status</option>
-      <option value="late">Atrasadas</option>
+      <option value="atrasada">Atrasadas</option>
       <option value="ok">No prazo</option>
     </select>
-    <button class="btn-reset" onclick="resetF()">
+    <button class="btn-limpar" onclick="resetF()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
       Limpar filtros
     </button>
   </div>
 
-  <!-- CHARTS -->
-  <div class="chart-grid">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-icon indigo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        </div>
-        <div class="panel-title">Resumo geral</div>
+  <div class="grade-graficos">
+    <div class="painel">
+      <div class="painel-cabecalho">
+        <div class="painel-titulo">Resumo geral</div>
       </div>
-      <div class="panel-sub">Visão consolidada do período selecionado</div>
-      <div id="summaryPanel" class="summary-panel"></div>
+      <div class="painel-subtitulo">Visão consolidada do período selecionado</div>
+      <div id="summaryPanel" class="painel-resumo"></div>
     </div>
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-icon red">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2M12 12v4M10 14h4"/></svg>
-        </div>
-        <div class="panel-title">Atrasos por transportadora</div>
+    <div class="painel">
+      <div class="painel-cabecalho">
+        <div class="painel-titulo">Atrasos por transportadora</div>
       </div>
-      <div class="panel-sub">Comparativo entre RotaMax, ViaCargo e FlashLog</div>
-      <div class="chart-wrap"><canvas id="cTransp"></canvas></div>
+      <div class="painel-subtitulo">Comparativo entre RotaMax, ViaCargo e FlashLog</div>
+      <div class="envoltorio-grafico"><canvas id="cTransp"></canvas></div>
     </div>
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-icon amber">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        </div>
-        <div class="panel-title">Distribuição por região</div>
+    <div class="painel">
+      <div class="painel-cabecalho">
+        <div class="painel-titulo">Distribuição por região</div>
       </div>
-      <div class="panel-sub">Entregas atrasadas e no prazo por área geográfica</div>
-      <div class="chart-wrap"><canvas id="cRegiao"></canvas></div>
+      <div class="painel-subtitulo">Entregas atrasadas e no prazo por área geográfica</div>
+      <div class="envoltorio-grafico"><canvas id="cRegiao"></canvas></div>
     </div>
   </div>
 
-  <!-- BOTTOM -->
-  <div class="bottom-grid">
-
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-icon red">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <div class="panel-title">Mais atrasadas</div>
+  <div class="grade-inferior">
+    <div class="painel painel-perigo">
+      <div class="painel-cabecalho">
+        <div class="painel-titulo">Mais atrasadas</div>
       </div>
-      <div class="panel-sub">Ranking por dias de excesso</div>
+      <div class="painel-subtitulo">Ranking por dias de excesso</div>
       <div id="rankList"></div>
     </div>
 
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-icon amber">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div class="panel-title">Avisos operacionais</div>
+    <div class="painel painel-perigo">
+      <div class="painel-cabecalho">
+        <div class="painel-titulo">Avisos operacionais</div>
       </div>
-      <div class="panel-sub">Alertas ativos no momento</div>
-      <div class="notice-list" id="noticeList"></div>
+      <div class="painel-subtitulo">Alertas ativos no momento</div>
+      <div class="lista-avisos" id="noticeList"></div>
     </div>
 
-    <div class="table-card">
-      <div class="table-head">
+    <div class="card-tabela">
+      <div class="cabecalho-tabela">
         <h3>Todas as entregas</h3>
-        <span class="table-count" id="tCount"></span>
+        <span class="contador-tabela" id="tCount"></span>
       </div>
-      <div class="tbl-wrap">
+      <div class="envoltorio-tabela">
         <table>
           <thead>
             <tr>
-              <th onclick="sortBy('id')">ID <span class="sort-arrow" id="sa-id">↕</span></th>
-              <th onclick="sortBy('t')">Transportadora <span class="sort-arrow" id="sa-t">↕</span></th>
-              <th onclick="sortBy('r')">Região <span class="sort-arrow" id="sa-r">↕</span></th>
-              <th onclick="sortBy('p')">Prazo <span class="sort-arrow" id="sa-p">↕</span></th>
-              <th onclick="sortBy('a')">Realizado <span class="sort-arrow" id="sa-a">↕</span></th>
-              <th onclick="sortBy('ex')">Excesso <span class="sort-arrow" id="sa-ex">↕</span></th>
+              <th onclick="sortBy('id')">ID <span class="seta-ordenacao" id="sa-id">↕</span></th>
+              <th onclick="sortBy('t')">Transportadora <span class="seta-ordenacao" id="sa-t">↕</span></th>
+              <th onclick="sortBy('r')">Região <span class="seta-ordenacao" id="sa-r">↕</span></th>
+              <th onclick="sortBy('p')">Prazo <span class="seta-ordenacao" id="sa-p">↕</span></th>
+              <th onclick="sortBy('a')">Realizado <span class="seta-ordenacao" id="sa-a">↕</span></th>
+              <th onclick="sortBy('ex')">Excesso <span class="seta-ordenacao" id="sa-ex">↕</span></th>
               <th>Severidade</th>
               <th>Status</th>
             </tr>
@@ -444,13 +301,8 @@ footer {
         </table>
       </div>
     </div>
-
   </div>
 </main>
-
-<footer>
-  Desafio dos Dados — VIVO &nbsp;·&nbsp; Base de amostra simplificada para fins didáticos
-</footer>
 
 <script>
 const DATA = [
@@ -466,74 +318,68 @@ const DATA = [
   {id:310, t:'ViaCargo', r:'Nordeste',     p:4,  a:8 },
 ];
 
-const late = d => d.a > d.p;
+const atrasada = d => d.a > d.p;
 const ex   = d => d.a - d.p;
-const sev  = d => { const e = ex(d); return e<=0?'ok':e<=2?'low':e<=4?'mid':'hi'; };
+const severidade  = d => { const e = ex(d); return e<=0?'ok':e<=2?'low':e<=4?'mid':'hi'; };
 
 const TRANSP  = ['RotaMax','ViaCargo','FlashLog'];
 const REGIOES = ['Sudeste','Sul','Nordeste','Norte','Centro-Oeste'];
-
 const SEV_LABEL = { ok:'Dentro do prazo', low:'Leve', mid:'Moderado', hi:'Crítico' };
-const SEV_CLASS = { ok:'sev-ok', low:'sev-low', mid:'sev-mid', hi:'sev-hi' };
+const SEV_CLASS = { ok:'severidade-ok', low:'severidade-leve', mid:'severidade-moderada', hi:'severidade-critica' };
 
 let cT = null, cR = null;
 let sortKey = 'ex', sortDir = -1;
 
-/* ── COUNTER ANIMATION ─────────────────── */
-function animateCounter(el, target, duration=700) {
-  const start = parseInt(el.textContent) || 0;
-  const startTime = performance.now();
+/* ── COUNTER ANIMATION ──────────────── */
+const activeAnimations = new Map();
+
+function animateCounter(el, target, duration = 700) {
+  const id = el.id;
+  if (activeAnimations.has(id)) cancelAnimationFrame(activeAnimations.get(id));
+
+  const start = parseFloat(el.dataset.current || '0');
+  el.dataset.current = target;
   const isPercent = el.dataset.suffix === '%';
+  const startTime = performance.now();
+
   function step(now) {
     const p = Math.min((now - startTime) / duration, 1);
     const ease = 1 - Math.pow(1 - p, 3);
     const val = Math.round(start + (target - start) * ease);
     el.textContent = val + (isPercent ? '%' : '');
-    if (p < 1) requestAnimationFrame(step);
+    if (p < 1) {
+      activeAnimations.set(id, requestAnimationFrame(step));
+    } else {
+      activeAnimations.delete(id);
+    }
   }
-  requestAnimationFrame(step);
+  activeAnimations.set(id, requestAnimationFrame(step));
 }
 
-/* ── SUMMARY ──────────────────────────── */
+/* ── SUMMARY ────────────────────────── */
 function buildSummary(total, lateN, okN, rate) {
   const el = document.getElementById('summaryPanel');
-
   const rows = [
-    {
-      label: 'Total de entregas',
-      val: total, suffix: '', cls: 'val-indigo', barColor: '#818CF8', pct: 100,
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>`
-    },
-    {
-      label: 'Entregas atrasadas',
-      val: lateN, suffix: '', cls: 'val-red', barColor: '#F87171', pct: total ? Math.round(lateN/total*100) : 0,
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
-    },
-    {
-      label: 'Entregas no prazo',
-      val: okN, suffix: '', cls: 'val-green', barColor: '#34D399', pct: total ? Math.round(okN/total*100) : 0,
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-    },
-    {
-      label: 'Taxa de atraso',
-      val: rate, suffix: '%', cls: 'val-amber', barColor: '#FCD34D', pct: rate,
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
-    },
+    { label:'Total de entregas', val:total, suffix:'', cls:'valor-indigo', barColor:'#818CF8', pct:100 },
+    { label:'Entregas atrasadas', val:lateN, suffix:'', cls:'valor-vermelho', barColor:'#F87171', pct:total?Math.round(lateN/total*100):0 },
+    { label:'Entregas no prazo', val:okN, suffix:'', cls:'valor-verde', barColor:'#34D399', pct:total?Math.round(okN/total*100):0 },
+    { label:'Taxa de atraso', val:rate, suffix:'%', cls:'valor-ambar', barColor:'#FCD34D', pct:rate },
   ];
 
-  el.innerHTML = rows.map((r, i) => `
-    <div class="summary-row" style="animation-delay:${i*0.07}s">
-      <span class="summary-row-label">${r.icon}${r.label}</span>
-      <div class="summary-row-right">
-        <div class="summary-bar-wrap">
-          <div class="summary-bar-fill" id="sbar-${i}" style="background:${r.barColor};width:0%"></div>
+  if (!document.getElementById('sval-0')) {
+    el.innerHTML = rows.map((r, i) => `
+      <div class="linha-resumo">
+        <span class="linha-resumo-rotulo">${r.label}</span>
+        <div class="linha-resumo-direita">
+          <div class="barra-resumo-trilha">
+            <div class="barra-resumo-preenchimento" id="sbar-${i}" style="background:${r.barColor};width:0%"></div>
+          </div>
+          <span class="linha-resumo-valor ${r.cls}" id="sval-${i}" data-suffix="${r.suffix}" data-current="0">0${r.suffix}</span>
         </div>
-        <span class="summary-row-val ${r.cls}" id="sval-${i}" data-suffix="${r.suffix}">0${r.suffix}</span>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  }
 
-  // Animate after paint
   requestAnimationFrame(() => {
     rows.forEach((r, i) => {
       setTimeout(() => {
@@ -541,203 +387,190 @@ function buildSummary(total, lateN, okN, rate) {
         if (barEl) barEl.style.width = r.pct + '%';
         const valEl = document.getElementById(`sval-${i}`);
         if (valEl) animateCounter(valEl, r.val, 600);
-      }, i * 70);
+      }, i * 60);
     });
   });
 }
 
-/* ── NOTICES ──────────────────────────── */
-const NOTICE_ICONS = {
-  critical: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
-  warning:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-  truck:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
-  ok:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
-  info:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
-};
-
+/* ── NOTICES ────────────────────────── */
 function buildNotices(data) {
-  const lateData = data.filter(late).sort((a,b)=>ex(b)-ex(a));
+  const lateData = data.filter(atrasada).sort((a,b) => ex(b) - ex(a));
   const total = data.length;
   const lateN = lateData.length;
-  const rate  = total ? Math.round(lateN/total*100) : 0;
+  const rate  = total ? Math.round(lateN / total * 100) : 0;
   const notices = [];
-
   if (lateData.length > 0) {
     const worst = lateData[0];
-    notices.push({ cls:'notice-hi', icon: NOTICE_ICONS.critical,
+    notices.push({ cls:'aviso-critico',
       title:`Crítico: entrega #${worst.id} com +${ex(worst)}d de atraso`,
       desc:`${worst.t} · ${worst.r} — maior atraso do período selecionado.` });
   }
+
   if (rate >= 60) {
-    notices.push({ cls:'notice-hi', icon: NOTICE_ICONS.warning,
+    notices.push({ cls:'aviso-critico',
       title:`Taxa de atraso crítica: ${rate}%`,
       desc:`Mais da metade das entregas estão atrasadas. Revisão imediata recomendada.` });
   } else if (rate >= 30) {
-    notices.push({ cls:'notice-mid', icon: NOTICE_ICONS.warning,
+    notices.push({ cls:'aviso-moderado',
       title:`Taxa de atraso elevada: ${rate}%`,
       desc:`Quase um terço das entregas em atraso. Monitorar tendência.` });
   }
-  const critCount = lateData.filter(d=>ex(d)>4).length;
-  if (critCount > 0) {
-    notices.push({ cls:'notice-mid', icon: NOTICE_ICONS.critical,
+
+  const critCount = lateData.filter(d => ex(d) > 4).length;
+  if (critCount > 0 && rate < 60) {
+    notices.push({ cls:'aviso-moderado',
       title:`${critCount} entrega(s) com severidade crítica`,
       desc:'Excesso superior a 4 dias. Ação corretiva urgente recomendada.' });
   }
-  const flashLate = lateData.filter(d=>d.t==='FlashLog').length;
-  if (flashLate >= 2) {
-    notices.push({ cls:'notice-mid', icon: NOTICE_ICONS.truck,
-      title:`FlashLog com ${flashLate} atrasos`,
-      desc:'Transportadora com maior concentração de atrasos no filtro atual.' });
+  if (lateN > 0) {
+    const carrierCounts = TRANSP.map(t => ({ t, n: lateData.filter(d => d.t === t).length }));
+    const topCarrier = carrierCounts.reduce((a, b) => b.n > a.n ? b : a);
+    if (topCarrier.n >= 2) {
+      notices.push({ cls:'aviso-moderado',
+        title:`${topCarrier.t} com ${topCarrier.n} atraso${topCarrier.n > 1 ? 's' : ''}`,
+        desc:'Transportadora com maior concentração de atrasos no filtro atual.' });
+    }
   }
+
   if (lateN === 0) {
-    notices.push({ cls:'notice-low', icon: NOTICE_ICONS.ok,
+    notices.push({ cls:'aviso-informativo',
       title:'Nenhuma entrega atrasada',
       desc:'Todas as entregas estão dentro do prazo no filtro atual. Ótimo desempenho!' });
   }
   if (notices.length === 0) {
-    notices.push({ cls:'notice-low', icon: NOTICE_ICONS.info,
+    notices.push({ cls:'aviso-informativo',
       title:'Operação estável',
       desc:'Sem alertas críticos no momento. Continue monitorando.' });
   }
 
   const el = document.getElementById('noticeList');
-  el.innerHTML = notices.map((n, i) => `
-    <div class="notice-item" style="animation-delay:${i*0.08}s">
-      <div class="notice-icon ${n.cls}">${n.icon}</div>
-      <div class="notice-body">
-        <div class="notice-title">${n.title}</div>
-        <div class="notice-desc">${n.desc}</div>
+  el.innerHTML = notices.map((n) => `
+    <div class="item-aviso">
+      <div class="corpo-aviso">
+        <div class="titulo-aviso">${n.title}</div>
+        <div class="descricao-aviso">${n.desc}</div>
       </div>
     </div>
   `).join('');
 }
 
-/* ── CHARTS ───────────────────────────── */
+/* ── CHARTS ─────────────────────────── */
 const CHART_OPT = {
   responsive: true, maintainAspectRatio: false,
   plugins: {
-    legend: { labels: { color:'#4E6080', font:{size:12,family:'Inter'}, boxWidth:12, boxHeight:12 } },
+    legend: { labels: { color:'#666', font:{size:11,family:'IBM Plex Mono'}, boxWidth:10, boxHeight:10 } },
     tooltip: {
-      backgroundColor:'#111827', borderColor:'#1C2740', borderWidth:1,
-      titleColor:'#E4EAF4', bodyColor:'#9CB0CC', padding:10,
+      backgroundColor:'#1A1A1A', borderColor:'#2A2A2A', borderWidth:1,
+      titleColor:'#E8E8E8', bodyColor:'#888', padding:10,
       callbacks: { label: c => `  ${c.dataset.label}: ${c.parsed.y}` }
     }
   },
   scales: {
-    x: { ticks: { color:'#4E6080', font:{size:11} }, grid: { color:'rgba(255,255,255,.04)' } },
-    y: { ticks: { color:'#4E6080', stepSize:1, font:{size:11} }, grid: { color:'rgba(255,255,255,.04)' }, beginAtZero: true }
+    x: { ticks:{ color:'#555', font:{size:10,family:'IBM Plex Mono'} }, grid:{ color:'rgba(255,255,255,.03)' } },
+    y: { ticks:{ color:'#555', stepSize:1, font:{size:10,family:'IBM Plex Mono'} }, grid:{ color:'rgba(255,255,255,.03)' }, beginAtZero:true }
   },
-  animation: { duration: 600, easing: 'easeInOutQuart' },
+  animation: { duration:400, easing:'easeInOutQuart' },
 };
 
 function buildTransp(data) {
-  const late_n = TRANSP.map(t => data.filter(d=>d.t===t && late(d)).length);
-  const ok_n   = TRANSP.map(t => data.filter(d=>d.t===t && !late(d)).length);
+  const late_n = TRANSP.map(t => data.filter(d => d.t===t && atrasada(d)).length);
+  const ok_n   = TRANSP.map(t => data.filter(d => d.t===t && !atrasada(d)).length);
   const ctx = document.getElementById('cTransp').getContext('2d');
   if (cT) cT.destroy();
   cT = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: TRANSP,
-      datasets: [
-        { label:'Atrasadas', data:late_n, backgroundColor:'rgba(220,38,38,.7)',  borderRadius:5, borderSkipped:false },
-        { label:'No prazo',  data:ok_n,   backgroundColor:'rgba(5,150,105,.55)', borderRadius:5, borderSkipped:false },
-      ]
-    },
+    type:'bar',
+    data: { labels:TRANSP, datasets:[
+      { label:'Atrasadas', data:late_n, backgroundColor:'rgba(224,49,49,.65)',  borderRadius:2, borderSkipped:false },
+      { label:'No prazo',  data:ok_n,   backgroundColor:'rgba(47,158,68,.45)', borderRadius:2, borderSkipped:false },
+    ]},
     options: CHART_OPT
   });
 }
 
 function buildRegiao(data) {
-  const late_n = REGIOES.map(r => data.filter(d=>d.r===r && late(d)).length);
-  const ok_n   = REGIOES.map(r => data.filter(d=>d.r===r && !late(d)).length);
+  const late_n = REGIOES.map(r => data.filter(d => d.r===r && atrasada(d)).length);
+  const ok_n   = REGIOES.map(r => data.filter(d => d.r===r && !atrasada(d)).length);
   const ctx = document.getElementById('cRegiao').getContext('2d');
   if (cR) cR.destroy();
   cR = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: REGIOES,
-      datasets: [
-        { label:'Atrasadas', data:late_n, backgroundColor:'rgba(217,119,6,.7)',   borderRadius:5, borderSkipped:false },
-        { label:'No prazo',  data:ok_n,   backgroundColor:'rgba(79,70,229,.55)', borderRadius:5, borderSkipped:false },
-      ]
-    },
+    type:'bar',
+    data: { labels:REGIOES, datasets:[
+      { label:'Atrasadas', data:late_n, backgroundColor:'rgba(230,119,0,.65)',  borderRadius:2, borderSkipped:false },
+      { label:'No prazo',  data:ok_n,   backgroundColor:'rgba(25,113,194,.45)', borderRadius:2, borderSkipped:false },
+    ]},
     options: CHART_OPT
   });
 }
 
-/* ── RANKING ──────────────────────────── */
+/* ── RANKING ────────────────────────── */
 function buildRanking(data) {
-  const delayed = data.filter(late).sort((a,b)=>ex(b)-ex(a)).slice(0,6);
+  const delayed = data.filter(atrasada).sort((a,b) => ex(b) - ex(a));
   const maxEx   = delayed[0] ? ex(delayed[0]) : 1;
-  const numCls  = ['r1','r2','r3'];
+  const numCls  = ['primeiro','segundo','terceiro'];
   const el = document.getElementById('rankList');
-
   if (!delayed.length) {
-    el.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:16px 0">Nenhuma entrega atrasada com os filtros atuais.</p>';
+    el.innerHTML = '<div class="estado-vazio">Nenhuma entrega atrasada com os filtros atuais.</div>';
     return;
   }
 
-  el.innerHTML = delayed.map((d,i) => `
-    <div class="rank-item" style="animation-delay:${i*0.06}s">
-      <div class="rank-num ${numCls[i]||''}">${i+1}</div>
+  el.innerHTML = delayed.map((d, i) => `
+    <div class="item-rank">
+      <div class="rank-numero ${numCls[i] || ''}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-id">#${d.id}</div>
         <div class="rank-meta">${d.t} &middot; ${d.r}</div>
       </div>
-      <div class="rank-bar-track">
-        <div class="rank-bar-fill" id="rb-${i}"></div>
+      <div class="barra-rank-trilha">
+        <div class="barra-rank-preenchimento" id="rb-${i}"></div>
       </div>
-      <div class="rank-extra">+${ex(d)}d</div>
+      <div class="rank-excesso">+${ex(d)}d</div>
     </div>
   `).join('');
 
-  // Animate bars after paint
   requestAnimationFrame(() => {
     delayed.forEach((d, i) => {
       setTimeout(() => {
         const bar = document.getElementById(`rb-${i}`);
-        if (bar) bar.style.width = Math.round(ex(d)/maxEx*100) + '%';
+        if (bar) bar.style.width = Math.round(ex(d) / maxEx * 100) + '%';
       }, i * 60 + 100);
     });
   });
 }
 
-/* ── TABLE ────────────────────────────── */
+/* ── TABLE ──────────────────────────── */
 function buildTable(data) {
-  const sorted = [...data].sort((a,b) => {
-    const av = sortKey==='ex' ? ex(a) : a[sortKey];
-    const bv = sortKey==='ex' ? ex(b) : b[sortKey];
-    return typeof av === 'string' ? av.localeCompare(bv)*sortDir : (av-bv)*sortDir;
+  const ordenada = [...data].sort((a,b) => {
+    const av = sortKey === 'ex' ? ex(a) : a[sortKey];
+    const bv = sortKey === 'ex' ? ex(b) : b[sortKey];
+    return typeof av === 'string' ? av.localeCompare(bv) * sortDir : (av - bv) * sortDir;
   });
 
   document.getElementById('tCount').textContent = `${data.length} entrega(s)`;
 
-  // Update sort arrows
   ['id','t','r','p','a','ex'].forEach(k => {
-    const el = document.getElementById(`sa-${k}`);
-    if (!el) return;
-    el.parentElement.classList.toggle('sorted', k === sortKey);
-    el.textContent = k === sortKey ? (sortDir === 1 ? '↑' : '↓') : '↕';
+    const arrow = document.getElementById(`sa-${k}`);
+    if (!arrow) return;
+    arrow.parentElement.classList.toggle('ordenada', k === sortKey);
+    arrow.textContent = k === sortKey ? (sortDir === 1 ? '↑' : '↓') : '↕';
   });
 
   const tb = document.getElementById('tBody');
-  if (!sorted.length) {
-    tb.innerHTML = '<tr class="empty-row"><td colspan="8">Nenhuma entrega corresponde ao filtro.</td></tr>';
+  if (!ordenada.length) {
+    tb.innerHTML = '<tr class="linha-vazia"><td colspan="8">Nenhuma entrega corresponde ao filtro.</td></tr>';
     return;
   }
 
-  tb.innerHTML = sorted.map(d => {
-    const e = ex(d), isLate = late(d), s = sev(d);
-    return `<tr class="${isLate?'late':''}">
+  tb.innerHTML = ordenada.map(d => {
+    const e = ex(d), isLate = atrasada(d), s = severidade(d);
+    return `<tr class="${isLate ? 'atrasada' : ''}">
       <td><strong>#${d.id}</strong></td>
       <td>${d.t}</td>
       <td>${d.r}</td>
       <td>${d.p}d</td>
       <td>${d.a}d</td>
-      <td class="col-excess ${e>0?'excess-pos':'excess-zero'}">${e>0?'+'+e:e}d</td>
-      <td><span class="sev"><span class="sev-dot ${SEV_CLASS[s]}"></span>${SEV_LABEL[s]}</span></td>
-      <td><span class="chip ${isLate?'late-chip':'ok-chip'}"><span class="chip-dot"></span>${isLate?'Atrasada':'No prazo'}</span></td>
+      <td class="col-excesso ${e>0?'excesso-positivo':'excesso-zero'}">${e>0?'+'+e:e}d</td>
+      <td><span class="severidade"><span class="severidade-ponto ${SEV_CLASS[s]}"></span>${SEV_LABEL[s]}</span></td>
+      <td><span class="badge ${isLate?'badge-atrasada':'badge-no-prazo'}">${isLate?'Atrasada':'No prazo'}</span></td>
     </tr>`;
   }).join('');
 }
@@ -745,49 +578,39 @@ function buildTable(data) {
 function sortBy(key) {
   if (sortKey === key) sortDir *= -1;
   else { sortKey = key; sortDir = -1; }
-  const data = getFiltered();
-  buildTable(data);
+  buildTable(getFiltered());
 }
 
-/* ── FILTER & RENDER ──────────────────── */
+/* ── FILTER & RENDER ────────────────── */
 function getFiltered() {
   const r = document.getElementById('fRegiao').value;
   const t = document.getElementById('fTransp').value;
   const s = document.getElementById('fStatus').value;
   return DATA.filter(d =>
-    (!r || d.r===r) &&
-    (!t || d.t===t) &&
-    (s==='late'?late(d) : s==='ok'?!late(d) : true)
+    (!r || d.r === r) &&
+    (!t || d.t === t) &&
+    (s==='atrasada' ? atrasada(d) : s==='ok' ? !atrasada(d) : true)
   );
 }
 
 function render() {
   const data = getFiltered();
   const total = data.length;
-  const lateN = data.filter(late).length;
+  const lateN = data.filter(atrasada).length;
   const okN   = total - lateN;
-  const rate  = total ? Math.round(lateN/total*100) : 0;
+  const rate  = total ? Math.round(lateN / total * 100) : 0;
+
   buildSummary(total, lateN, okN, rate);
   buildTransp(data);
   buildRegiao(data);
   buildNotices(data);
   buildRanking(data);
   buildTable(data);
-  flashTime();
 }
 
 function resetF() {
   ['fRegiao','fTransp','fStatus'].forEach(id => document.getElementById(id).value = '');
   render();
-}
-
-/* ── CLOCK ────────────────────────────── */
-function flashTime() {
-  const el = document.getElementById('updateTime');
-  const now = new Date();
-  el.textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-  el.classList.add('flash');
-  setTimeout(() => el.classList.remove('flash'), 600);
 }
 
 render();
