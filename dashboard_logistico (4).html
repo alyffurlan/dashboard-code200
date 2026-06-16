@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogiWatch — Monitoramento de Entregas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #080C18;
+  --surface:     #0D1221;
+  --card:        #111827;
+  --card-hover:  #141d2f;
+  --border:      #1C2740;
+  --border-mid:  #253050;
+  --text:        #E4EAF4;
+  --muted:       #4E6080;
+  --faint:       #2A3858;
+
+  --indigo:      #4F46E5;
+  --indigo-dim:  rgba(79,70,229,0.15);
+  --red:         #DC2626;
+  --red-dim:     rgba(220,38,38,0.12);
+  --red-mid:     rgba(220,38,38,0.25);
+  --green:       #059669;
+  --green-dim:   rgba(5,150,105,0.12);
+  --amber:       #D97706;
+  --amber-dim:   rgba(217,119,6,0.12);
+
+  --r:           10px;
+  --r-sm:        6px;
+}
+
+html, body { min-height: 100%; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ──────────────────────────────── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 60px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+}
+
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--indigo);
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-mark svg { width: 16px; height: 16px; color: #fff; }
+.logo-name { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+.logo-sub  { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+.header-right { display: flex; align-items: center; gap: 16px; }
+
+.last-update {
+  font-size: 11px; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.last-update svg { width: 12px; height: 12px; }
+#updateTime { color: var(--text); font-weight: 500; transition: color .3s; }
+#updateTime.flash { color: var(--indigo); }
+
+.live-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 12px; border-radius: 99px;
+  border: 1px solid var(--red-mid);
+  font-size: 11px; font-weight: 600; letter-spacing: .4px;
+  color: var(--red); text-transform: uppercase;
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red);
+  animation: livepulse 2s ease-in-out infinite;
+}
+@keyframes livepulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .35; }
+}
+
+/* ── LAYOUT ──────────────────────────────── */
+main { padding: 28px 32px; max-width: 1360px; margin: 0 auto; }
+
+/* ── FILTER BAR ──────────────────────────── */
+.filter-bar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.filter-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: .3px; text-transform: uppercase; }
+.filter-sep { width: 1px; height: 18px; background: var(--border); }
+
+select {
+  padding: 7px 12px; border-radius: var(--r-sm);
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text); font-size: 13px; font-family: inherit;
+  cursor: pointer; outline: none; transition: border-color .2s, box-shadow .2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234E6080' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+select:hover { border-color: var(--border-mid); }
+select:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(79,70,229,.15); }
+
+.btn-reset {
+  padding: 7px 14px; border-radius: var(--r-sm);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: all .2s; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-reset svg { width: 13px; height: 13px; }
+.btn-reset:hover { color: var(--text); border-color: var(--border-mid); background: rgba(255,255,255,.03); }
+
+/* ── CHART GRID ───────────────────────────── */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px; margin-bottom: 20px;
+}
+.panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 22px;
+  transition: border-color .25s, box-shadow .25s;
+  animation: fadeUp .4s ease both;
+}
+.panel:hover { border-color: var(--border-mid); box-shadow: 0 4px 24px rgba(0,0,0,.25); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.panel-icon {
+  width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.panel-icon svg { width: 14px; height: 14px; }
+.panel-icon.indigo { background: var(--indigo-dim); color: #818CF8; }
+.panel-icon.red    { background: var(--red-dim);    color: #F87171; }
+.panel-icon.amber  { background: var(--amber-dim);  color: #FCD34D; }
+.panel-icon.green  { background: var(--green-dim);  color: #34D399; }
+
+.panel-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.panel-sub   { font-size: 12px; color: var(--muted); margin-bottom: 18px; margin-left: 36px; }
+.chart-wrap  { position: relative; height: 210px; }
+
+/* ── SUMMARY PANEL ─────────────────────────── */
+.summary-panel { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.summary-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; border-radius: var(--r-sm);
+  background: rgba(255,255,255,.025); border: 1px solid var(--border);
+  transition: background .2s, border-color .2s;
+  cursor: default;
+}
+.summary-row:hover { background: rgba(255,255,255,.04); border-color: var(--border-mid); }
+.summary-row-label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.summary-row-label svg { width: 14px; height: 14px; flex-shrink: 0; }
+.summary-row-right { display: flex; align-items: center; gap: 10px; }
+.summary-bar-wrap { width: 60px; height: 3px; background: var(--faint); border-radius: 99px; overflow: hidden; }
+.summary-bar-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+.summary-row-val { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; min-width: 40px; text-align: right;
+  transition: color .4s; }
+.val-indigo { color: #818CF8; }
+.val-red    { color: #F87171; }
+.val-green  { color: #34D399; }
+.val-amber  { color: #FCD34D; }
+
+/* ── AVISOS ──────────────────────────────── */
+.notice-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.notice-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--border); background: rgba(255,255,255,.02);
+  animation: slideIn .35s ease both;
+  transition: background .2s;
+}
+.notice-item:hover { background: rgba(255,255,255,.04); }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.notice-icon {
+  width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.notice-icon svg { width: 13px; height: 13px; }
+.notice-hi  { background: var(--red-dim);             border: 1px solid var(--red-mid);             color: #F87171; }
+.notice-mid { background: rgba(217,119,6,.12);         border: 1px solid rgba(217,119,6,.25);         color: #FCD34D; }
+.notice-low { background: rgba(79,70,229,.12);         border: 1px solid rgba(79,70,229,.25);         color: #818CF8; }
+.notice-body { flex: 1; min-width: 0; }
+.notice-title { font-size: 12px; font-weight: 600; color: var(--text); }
+.notice-desc  { font-size: 11px; color: var(--muted); margin-top: 1px; line-height: 1.4; }
+
+/* ── BOTTOM GRID ─────────────────────────── */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 280px 280px 1fr;
+  gap: 14px;
+}
+
+/* ── RANKING ─────────────────────────────── */
+.rank-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+  animation: fadeUp .35s ease both;
+}
+.rank-item:last-child { border-bottom: none; }
+.rank-num {
+  width: 24px; height: 24px; flex-shrink: 0;
+  border-radius: 5px; background: var(--faint);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--muted);
+}
+.rank-num.r1 { background: rgba(217,119,6,.2); color: #FCD34D; }
+.rank-num.r2 { background: rgba(148,163,184,.12); color: #94A3B8; }
+.rank-num.r3 { background: rgba(180,83,9,.18); color: #FB923C; }
+.rank-info { flex: 1; min-width: 0; }
+.rank-id   { font-size: 13px; font-weight: 600; }
+.rank-meta { font-size: 11px; color: var(--muted); }
+.rank-bar-track { flex: 1; height: 4px; background: var(--faint); border-radius: 99px; overflow: hidden; }
+.rank-bar-fill  { height: 100%; border-radius: 99px; background: var(--red); width: 0; transition: width 1s cubic-bezier(.4,0,.2,1); }
+.rank-extra { font-size: 13px; font-weight: 600; color: var(--red); min-width: 36px; text-align: right; flex-shrink: 0; }
+
+/* ── TABLE ───────────────────────────────── */
+.table-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden;
+  animation: fadeUp .45s ease both;
+  transition: border-color .25s;
+}
+.table-card:hover { border-color: var(--border-mid); }
+.table-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.table-head h3  { font-size: 13px; font-weight: 600; }
+.table-count    { font-size: 12px; color: var(--muted); }
+
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 10px 16px; text-align: left;
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  letter-spacing: .5px; text-transform: uppercase;
+  background: rgba(255,255,255,.02);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer; user-select: none;
+  transition: color .15s;
+}
+thead th:hover { color: var(--text); }
+thead th .sort-arrow { opacity: .4; margin-left: 4px; font-size: 10px; }
+thead th.sorted .sort-arrow { opacity: 1; color: var(--indigo); }
+tbody td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.035); }
+tbody tr { transition: background .1s; }
+tbody tr:hover { background: rgba(255,255,255,.025); }
+tbody tr.late  { background: rgba(220,38,38,.04); }
+tbody tr.late:hover { background: rgba(220,38,38,.075); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px; border-radius: 99px;
+  font-size: 11px; font-weight: 600; letter-spacing: .2px;
+}
+.chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.chip.late-chip { background: var(--red-dim);   color: #F87171; }
+.chip.ok-chip   { background: var(--green-dim); color: #34D399; }
+
+.sev { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.sev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sev-ok  { background: var(--green); }
+.sev-low { background: var(--amber); }
+.sev-mid { background: #EA580C; }
+.sev-hi  { background: var(--red); }
+
+.col-excess { font-weight: 600; }
+.excess-pos  { color: var(--red); }
+.excess-zero { color: var(--green); }
+.empty-row td { text-align: center; padding: 36px; color: var(--muted); }
+
+/* footer */
+footer {
+  text-align: center; padding: 24px 16px;
+  font-size: 12px; color: var(--muted);
+  border-top: 1px solid var(--border); margin-top: 28px;
+}
+
+/* ── ANIMATION DELAYS ─────────────────────── */
+.panel:nth-child(1) { animation-delay: .05s; }
+.panel:nth-child(2) { animation-delay: .10s; }
+.panel:nth-child(3) { animation-delay: .15s; }
+
+@media (max-width: 1200px) { .chart-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 1100px) { .chart-grid { grid-template-columns: 1fr; } .bottom-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px)  { main { padding: 16px; } header { padding: 0 16px; } .logo-sub, .live-pill { display: none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-name">LogiWatch</div>
+      <div class="logo-sub">Monitoramento de Entregas</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="last-update">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Atualizado às <span id="updateTime">—</span>
+    </div>
+    <div class="live-pill"><div class="live-dot"></div>Monitoramento ativo</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="filter-bar">
+    <span class="filter-label">Filtrar</span>
+    <div class="filter-sep"></div>
+    <select id="fRegiao" onchange="render()">
+      <option value="">Todas as regiões</option>
+      <option>Sudeste</option><option>Sul</option>
+      <option>Nordeste</option><option>Norte</option><option>Centro-Oeste</option>
+    </select>
+    <select id="fTransp" onchange="render()">
+      <option value="">Todas as transportadoras</option>
+      <option>RotaMax</option><option>ViaCargo</option><option>FlashLog</option>
+    </select>
+    <select id="fStatus" onchange="render()">
+      <option value="">Todos os status</option>
+      <option value="late">Atrasadas</option>
+      <option value="ok">No prazo</option>
+    </select>
+    <button class="btn-reset" onclick="resetF()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+      Limpar filtros
+    </button>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="chart-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon indigo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        </div>
+        <div class="panel-title">Resumo geral</div>
+      </div>
+      <div class="panel-sub">Visão consolidada do período selecionado</div>
+      <div id="summaryPanel" class="summary-panel"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2M12 12v4M10 14h4"/></svg>
+        </div>
+        <div class="panel-title">Atrasos por transportadora</div>
+      </div>
+      <div class="panel-sub">Comparativo entre RotaMax, ViaCargo e FlashLog</div>
+      <div class="chart-wrap"><canvas id="cTransp"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="panel-title">Distribuição por região</div>
+      </div>
+      <div class="panel-sub">Entregas atrasadas e no prazo por área geográfica</div>
+      <div class="chart-wrap"><canvas id="cRegiao"></canvas></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom-grid">
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="panel-title">Mais atrasadas</div>
+      </div>
+      <div class="panel-sub">Ranking por dias de excesso</div>
+      <div id="rankList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="panel-title">Avisos operacionais</div>
+      </div>
+      <div class="panel-sub">Alertas ativos no momento</div>
+      <div class="notice-list" id="noticeList"></div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-head">
+        <h3>Todas as entregas</h3>
+        <span class="table-count" id="tCount"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('id')">ID <span class="sort-arrow" id="sa-id">↕</span></th>
+              <th onclick="sortBy('t')">Transportadora <span class="sort-arrow" id="sa-t">↕</span></th>
+              <th onclick="sortBy('r')">Região <span class="sort-arrow" id="sa-r">↕</span></th>
+              <th onclick="sortBy('p')">Prazo <span class="sort-arrow" id="sa-p">↕</span></th>
+              <th onclick="sortBy('a')">Realizado <span class="sort-arrow" id="sa-a">↕</span></th>
+              <th onclick="sortBy('ex')">Excesso <span class="sort-arrow" id="sa-ex">↕</span></th>
+              <th>Severidade</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  Desafio dos Dados — VIVO &nbsp;·&nbsp; Base de amostra simplificada para fins didáticos
+</footer>
+
+<script>
+const DATA = [
+  {id:301, t:'RotaMax',  r:'Sudeste',     p:3,  a:7 },
+  {id:302, t:'ViaCargo', r:'Sul',          p:5,  a:5 },
+  {id:303, t:'FlashLog', r:'Nordeste',     p:4,  a:9 },
+  {id:304, t:'RotaMax',  r:'Norte',        p:6,  a:4 },
+  {id:305, t:'ViaCargo', r:'Centro-Oeste', p:2,  a:6 },
+  {id:306, t:'FlashLog', r:'Sul',          p:5,  a:12},
+  {id:307, t:'RotaMax',  r:'Sul',          p:6,  a:9 },
+  {id:308, t:'ViaCargo', r:'Sudeste',      p:3,  a:4 },
+  {id:309, t:'FlashLog', r:'Norte',        p:5,  a:5 },
+  {id:310, t:'ViaCargo', r:'Nordeste',     p:4,  a:8 },
+];
+
+const late = d => d.a > d.p;
+const ex   = d => d.a - d.p;
+const sev  = d => { const e = ex(d); return e<=0?'ok':e<=2?'low':e<=4?'mid':'hi'; };
+
+const TRANSP  = ['RotaMax','ViaCargo','FlashLog'];
+const REGIOES = ['Sudeste','Sul','Nordeste','Norte','Centro-Oeste'];
+
+const SEV_LABEL = { ok:'Dentro do prazo', low:'Leve', mid:'Moderado', hi:'Crítico' };
+const SEV_CLASS = { ok:'sev-ok', low:'sev-low', mid:'sev-mid', hi:'sev-hi' };
+
+let cT = null, cR = null;
+let sortKey = 'ex', sortDir = -1;
+
+/* ── COUNTER ANIMATION ─────────────────── */
+function animateCounter(el, target, duration=700) {
+  const start = parseInt(el.textContent) || 0;
+  const startTime = performance.now();
+  const isPercent = el.dataset.suffix === '%';
+  function step(now) {
+    const p = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const val = Math.round(start + (target - start) * ease);
+    el.textContent = val + (isPercent ? '%' : '');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ── SUMMARY ──────────────────────────── */
+function buildSummary(total, lateN, okN, rate) {
+  const el = document.getElementById('summaryPanel');
+
+  const rows = [
+    {
+      label: 'Total de entregas',
+      val: total, suffix: '', cls: 'val-indigo', barColor: '#818CF8', pct: 100,
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>`
+    },
+    {
+      label: 'Entregas atrasadas',
+      val: lateN, suffix: '', cls: 'val-red', barColor: '#F87171', pct: total ? Math.round(lateN/total*100) : 0,
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
+    },
+    {
+      label: 'Entregas no prazo',
+      val: okN, suffix: '', cls: 'val-green', barColor: '#34D399', pct: total ? Math.round(okN/total*100) : 0,
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+    },
+    {
+      label: 'Taxa de atraso',
+      val: rate, suffix: '%', cls: 'val-amber', barColor: '#FCD34D', pct: rate,
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+    },
+  ];
+
+  el.innerHTML = rows.map((r, i) => `
+    <div class="summary-row" style="animation-delay:${i*0.07}s">
+      <span class="summary-row-label">${r.icon}${r.label}</span>
+      <div class="summary-row-right">
+        <div class="summary-bar-wrap">
+          <div class="summary-bar-fill" id="sbar-${i}" style="background:${r.barColor};width:0%"></div>
+        </div>
+        <span class="summary-row-val ${r.cls}" id="sval-${i}" data-suffix="${r.suffix}">0${r.suffix}</span>
+      </div>
+    </div>
+  `).join('');
+
+  // Animate after paint
+  requestAnimationFrame(() => {
+    rows.forEach((r, i) => {
+      setTimeout(() => {
+        const barEl = document.getElementById(`sbar-${i}`);
+        if (barEl) barEl.style.width = r.pct + '%';
+        const valEl = document.getElementById(`sval-${i}`);
+        if (valEl) animateCounter(valEl, r.val, 600);
+      }, i * 70);
+    });
+  });
+}
+
+/* ── NOTICES ──────────────────────────── */
+const NOTICE_ICONS = {
+  critical: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  warning:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  truck:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+  ok:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  info:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
+};
+
+function buildNotices(data) {
+  const lateData = data.filter(late).sort((a,b)=>ex(b)-ex(a));
+  const total = data.length;
+  const lateN = lateData.length;
+  const rate  = total ? Math.round(lateN/total*100) : 0;
+  const notices = [];
+
+  if (lateData.length > 0) {
+    const worst = lateData[0];
+    notices.push({ cls:'notice-hi', icon: NOTICE_ICONS.critical,
+      title:`Crítico: entrega #${worst.id} com +${ex(worst)}d de atraso`,
+      desc:`${worst.t} · ${worst.r} — maior atraso do período selecionado.` });
+  }
+  if (rate >= 60) {
+    notices.push({ cls:'notice-hi', icon: NOTICE_ICONS.warning,
+      title:`Taxa de atraso crítica: ${rate}%`,
+      desc:`Mais da metade das entregas estão atrasadas. Revisão imediata recomendada.` });
+  } else if (rate >= 30) {
+    notices.push({ cls:'notice-mid', icon: NOTICE_ICONS.warning,
+      title:`Taxa de atraso elevada: ${rate}%`,
+      desc:`Quase um terço das entregas em atraso. Monitorar tendência.` });
+  }
+  const critCount = lateData.filter(d=>ex(d)>4).length;
+  if (critCount > 0) {
+    notices.push({ cls:'notice-mid', icon: NOTICE_ICONS.critical,
+      title:`${critCount} entrega(s) com severidade crítica`,
+      desc:'Excesso superior a 4 dias. Ação corretiva urgente recomendada.' });
+  }
+  const flashLate = lateData.filter(d=>d.t==='FlashLog').length;
+  if (flashLate >= 2) {
+    notices.push({ cls:'notice-mid', icon: NOTICE_ICONS.truck,
+      title:`FlashLog com ${flashLate} atrasos`,
+      desc:'Transportadora com maior concentração de atrasos no filtro atual.' });
+  }
+  if (lateN === 0) {
+    notices.push({ cls:'notice-low', icon: NOTICE_ICONS.ok,
+      title:'Nenhuma entrega atrasada',
+      desc:'Todas as entregas estão dentro do prazo no filtro atual. Ótimo desempenho!' });
+  }
+  if (notices.length === 0) {
+    notices.push({ cls:'notice-low', icon: NOTICE_ICONS.info,
+      title:'Operação estável',
+      desc:'Sem alertas críticos no momento. Continue monitorando.' });
+  }
+
+  const el = document.getElementById('noticeList');
+  el.innerHTML = notices.map((n, i) => `
+    <div class="notice-item" style="animation-delay:${i*0.08}s">
+      <div class="notice-icon ${n.cls}">${n.icon}</div>
+      <div class="notice-body">
+        <div class="notice-title">${n.title}</div>
+        <div class="notice-desc">${n.desc}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ── CHARTS ───────────────────────────── */
+const CHART_OPT = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: {
+    legend: { labels: { color:'#4E6080', font:{size:12,family:'Inter'}, boxWidth:12, boxHeight:12 } },
+    tooltip: {
+      backgroundColor:'#111827', borderColor:'#1C2740', borderWidth:1,
+      titleColor:'#E4EAF4', bodyColor:'#9CB0CC', padding:10,
+      callbacks: { label: c => `  ${c.dataset.label}: ${c.parsed.y}` }
+    }
+  },
+  scales: {
+    x: { ticks: { color:'#4E6080', font:{size:11} }, grid: { color:'rgba(255,255,255,.04)' } },
+    y: { ticks: { color:'#4E6080', stepSize:1, font:{size:11} }, grid: { color:'rgba(255,255,255,.04)' }, beginAtZero: true }
+  },
+  animation: { duration: 600, easing: 'easeInOutQuart' },
+};
+
+function buildTransp(data) {
+  const late_n = TRANSP.map(t => data.filter(d=>d.t===t && late(d)).length);
+  const ok_n   = TRANSP.map(t => data.filter(d=>d.t===t && !late(d)).length);
+  const ctx = document.getElementById('cTransp').getContext('2d');
+  if (cT) cT.destroy();
+  cT = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: TRANSP,
+      datasets: [
+        { label:'Atrasadas', data:late_n, backgroundColor:'rgba(220,38,38,.7)',  borderRadius:5, borderSkipped:false },
+        { label:'No prazo',  data:ok_n,   backgroundColor:'rgba(5,150,105,.55)', borderRadius:5, borderSkipped:false },
+      ]
+    },
+    options: CHART_OPT
+  });
+}
+
+function buildRegiao(data) {
+  const late_n = REGIOES.map(r => data.filter(d=>d.r===r && late(d)).length);
+  const ok_n   = REGIOES.map(r => data.filter(d=>d.r===r && !late(d)).length);
+  const ctx = document.getElementById('cRegiao').getContext('2d');
+  if (cR) cR.destroy();
+  cR = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: REGIOES,
+      datasets: [
+        { label:'Atrasadas', data:late_n, backgroundColor:'rgba(217,119,6,.7)',   borderRadius:5, borderSkipped:false },
+        { label:'No prazo',  data:ok_n,   backgroundColor:'rgba(79,70,229,.55)', borderRadius:5, borderSkipped:false },
+      ]
+    },
+    options: CHART_OPT
+  });
+}
+
+/* ── RANKING ──────────────────────────── */
+function buildRanking(data) {
+  const delayed = data.filter(late).sort((a,b)=>ex(b)-ex(a)).slice(0,6);
+  const maxEx   = delayed[0] ? ex(delayed[0]) : 1;
+  const numCls  = ['r1','r2','r3'];
+  const el = document.getElementById('rankList');
+
+  if (!delayed.length) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:16px 0">Nenhuma entrega atrasada com os filtros atuais.</p>';
+    return;
+  }
+
+  el.innerHTML = delayed.map((d,i) => `
+    <div class="rank-item" style="animation-delay:${i*0.06}s">
+      <div class="rank-num ${numCls[i]||''}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-id">#${d.id}</div>
+        <div class="rank-meta">${d.t} &middot; ${d.r}</div>
+      </div>
+      <div class="rank-bar-track">
+        <div class="rank-bar-fill" id="rb-${i}"></div>
+      </div>
+      <div class="rank-extra">+${ex(d)}d</div>
+    </div>
+  `).join('');
+
+  // Animate bars after paint
+  requestAnimationFrame(() => {
+    delayed.forEach((d, i) => {
+      setTimeout(() => {
+        const bar = document.getElementById(`rb-${i}`);
+        if (bar) bar.style.width = Math.round(ex(d)/maxEx*100) + '%';
+      }, i * 60 + 100);
+    });
+  });
+}
+
+/* ── TABLE ────────────────────────────── */
+function buildTable(data) {
+  const sorted = [...data].sort((a,b) => {
+    const av = sortKey==='ex' ? ex(a) : a[sortKey];
+    const bv = sortKey==='ex' ? ex(b) : b[sortKey];
+    return typeof av === 'string' ? av.localeCompare(bv)*sortDir : (av-bv)*sortDir;
+  });
+
+  document.getElementById('tCount').textContent = `${data.length} entrega(s)`;
+
+  // Update sort arrows
+  ['id','t','r','p','a','ex'].forEach(k => {
+    const el = document.getElementById(`sa-${k}`);
+    if (!el) return;
+    el.parentElement.classList.toggle('sorted', k === sortKey);
+    el.textContent = k === sortKey ? (sortDir === 1 ? '↑' : '↓') : '↕';
+  });
+
+  const tb = document.getElementById('tBody');
+  if (!sorted.length) {
+    tb.innerHTML = '<tr class="empty-row"><td colspan="8">Nenhuma entrega corresponde ao filtro.</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = sorted.map(d => {
+    const e = ex(d), isLate = late(d), s = sev(d);
+    return `<tr class="${isLate?'late':''}">
+      <td><strong>#${d.id}</strong></td>
+      <td>${d.t}</td>
+      <td>${d.r}</td>
+      <td>${d.p}d</td>
+      <td>${d.a}d</td>
+      <td class="col-excess ${e>0?'excess-pos':'excess-zero'}">${e>0?'+'+e:e}d</td>
+      <td><span class="sev"><span class="sev-dot ${SEV_CLASS[s]}"></span>${SEV_LABEL[s]}</span></td>
+      <td><span class="chip ${isLate?'late-chip':'ok-chip'}"><span class="chip-dot"></span>${isLate?'Atrasada':'No prazo'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = -1; }
+  const data = getFiltered();
+  buildTable(data);
+}
+
+/* ── FILTER & RENDER ──────────────────── */
+function getFiltered() {
+  const r = document.getElementById('fRegiao').value;
+  const t = document.getElementById('fTransp').value;
+  const s = document.getElementById('fStatus').value;
+  return DATA.filter(d =>
+    (!r || d.r===r) &&
+    (!t || d.t===t) &&
+    (s==='late'?late(d) : s==='ok'?!late(d) : true)
+  );
+}
+
+function render() {
+  const data = getFiltered();
+  const total = data.length;
+  const lateN = data.filter(late).length;
+  const okN   = total - lateN;
+  const rate  = total ? Math.round(lateN/total*100) : 0;
+  buildSummary(total, lateN, okN, rate);
+  buildTransp(data);
+  buildRegiao(data);
+  buildNotices(data);
+  buildRanking(data);
+  buildTable(data);
+  flashTime();
+}
+
+function resetF() {
+  ['fRegiao','fTransp','fStatus'].forEach(id => document.getElementById(id).value = '');
+  render();
+}
+
+/* ── CLOCK ────────────────────────────── */
+function flashTime() {
+  const el = document.getElementById('updateTime');
+  const now = new Date();
+  el.textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 600);
+}
+
+render();
+</script>
+</body>
+</html>
